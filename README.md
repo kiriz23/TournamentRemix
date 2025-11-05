@@ -1,1 +1,1 @@
-Code fro the TournamentRemix project
+Code for the TournamentRemix project
