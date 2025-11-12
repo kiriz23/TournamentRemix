@@ -1,0 +1,446 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{geometry}
+\usepackage{caption}
+\usepackage{hyperref}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\geometry{margin=1in}
+
+\begin{document}
+
+\title{Tournament Remix}
+\author{Kyrylo Krocha}
+\date{\today}
+\maketitle
+
+\newpage
+\tableofcontents
+\newpage
+
+\section{Introduction}
+
+Iterated Prisoners Dilemma (IPD) is a famous mathematical model which can be used to describe various behavioral phenomena and has applications in such areas as biology ~\cite{kastampolidou2020brief}, psychology~\cite{boone1999impact}, social studies~\cite{pettit1985prisoner}, as well as other areas. This model has been widely researched as a framework for studying the evolution of cooperation and competition among rational agents.
+  
+In the classical \textit{Prisoner’s Dilemma}, two players simultaneously choose between two possible actions — \textit{cooperate (C)} or \textit{defect (D)} — without knowing the other’s choice. The outcome of the interaction is determined by a payoff matrix, which assigns rewards based on the combination of decisions made by both players:
+
+\begin{table}[h!]
+\centering
+\begin{tabular}{c|c|c}
+\textbf{} & \textbf{Cooperate (C)} & \textbf{Defect (D)} \\
+\hline
+\textbf{Cooperate (C)} & $(R, R)$ & $(S, T)$ \\
+\textbf{Defect (D)} & $(T, S)$ & $(P, P)$ \\
+\end{tabular}
+\caption{Payoff matrix for the Prisoner’s Dilemma}
+\label{tab:payoff_matrix}
+\end{table}
+
+The values of payoffs in this work are set to $R=3$, $P=1$, $T=5$, and $S=0$, which correspond to the parameters employed in the original Axelrod tournaments \cite{doi:10.1177/002200278002400101} and have been widely adopted in subsequent research.
+
+Unlike the single-round Prisoner’s Dilemma, the iterated version allows the same participants to interact repeatedly, enabling the development of complex strategic behaviors. Over the years, the study of such behaviors has become a central topic in the analysis of cooperation and competition, leading to the development of numerous strategies and extensive theoretical and computational investigations \cite{10.1371/journal.pcbi.1012644,fogel1993evolving,akin2016iterated}.
+
+The Axelrod tournaments, in particular, played a key role in demonstrating how cooperation can emerge and persist even in competitive environments. In these computational experiments, organized by Robert Axelrod in the early 1980s, researchers submitted strategies that competed in repeated Prisoner’s Dilemma games. Each strategy played against every other, and rankings were based on the average payoff across all matches. The simple Tit for Tat strategy, proposed by Anatol Rapoport, achieved the best overall performance, showing that cooperation, when combined with reciprocity and forgiveness, can outperform more exploitative approaches~\cite{doi:10.1177/002200278002400101}. A second tournament with more sophisticated opponents confirmed the robustness of this result, highlighting that cooperative behavior can be evolutionarily stable even among self-interested agents. These findings established the Axelrod tournament as a benchmark for studying cooperation and strategic interaction.
+
+While traditional tournaments rank strategies based solely on their average score, this approach may not fully capture the complexity of strategic interactions in the Iterated Prisoner’s Dilemma. A strategy can achieve a high average score by performing consistently well overall, even if it loses in most pairwise encounters. As a result, the average-score metric emphasizes efficiency but may overlook dominance relationships between individual competitors. To address these limitations, alternative evaluation methods can be employed:
+\begin{itemize}
+    \item \textbf{Win-based tournament:} ranks strategies according to the number of head-to-head victories, focusing on direct competitive success rather than aggregate performance. This measure highlights strategies that are more dominant in individual matchups, even if their overall scores are slightly lower.
+    \item \textbf{Schulze method:} originally developed for preferential voting systems, extends this idea further by constructing a pairwise comparison graph of all strategies and determining rankings based on the strongest paths of victories. This allows for a more nuanced assessment of relative dominance and transitive preferences within the population of strategies.
+\end{itemize}
+
+By implementing and comparing these different evaluation frameworks - classic (average-score), win-based, and Schulze-style - this project aims to uncover how alternative ranking methods influence the identification of dominant strategies in the IPD setting. Through these comparisons, we can gain deeper insight into the structural dynamics of competition and the mechanisms that sustain cooperation across different strategic environments.
+
+\section{Data collection}
+
+The main tool for running tournaments and collecting data is \textbf{Axelrod-Python}~\cite{vince_knight_2017_807699}  -  an open-source research framework designed specifically for the study of the Iterated Prisoner’s Dilemma.  
+It provides a comprehensive collection of tools for simulating tournaments and analyzing the behavior of a wide variety of strategies.  
+The library also includes hundreds of predefined strategies, ranging from classic rule-based approaches such as \textit{Tit for Tat} and \textit{Grim Trigger} to more sophisticated stochastic, memory-based, and machine learning–driven algorithms.  
+
+\subsection{Tournament parameters}
+
+The parameters for running the tournaments remain consistent throughout this work and are summarized in the table below. These parameters correspond to those used in the first Axelrod tournament~\cite{doi:10.1177/002200278002400101}.
+
+\begin{table}[H]
+\centering
+
+\begin{tabular}{ll}
+\hline
+\textbf{Parameter} & \textbf{Value} \\
+\hline
+Number of rounds per match & 200 \\
+Number of repetitions per opponent pair & 5 \\
+Noise probability & 0.0 \\
+Match payoff values & $T=5, R=3, P=1, S=0$ \\
+\hline
+\end{tabular}
+\caption{Tournament Parameters}
+\label{tab:params}
+\end{table}
+
+\subsection{Data pipeline and source code}
+
+After the tournament is executed, all results are saved in a CSV file, which is then processed by a separate analysis program. This program is responsible for computing key performance metrics, applying alternative ranking methods such as the win-based and Schulze formats, and generating statistical and graphical summaries of the outcomes. 
+
+The full source code used in this project, including tournament setup, data processing, and analysis scripts, can be found at \href{https://github.com/kiriz23/TournamentRemix}{\underline{this GitHub repository}}.
+
+
+\section{Alternative evaluation methods}
+
+\subsection{Win-based method}
+
+The win-based method evaluates tournament performance by counting the number of head-to-head victories each strategy achieves against others. This method focuses on direct competitiveness - how often a strategy performs better than its opponent in individual matches. Such an evaluation can reveal dominance relations that average-based rankings might obscure, especially in cases where a strategy scores highly overall but consistently loses to certain opponents. By emphasizing pairwise outcomes, the win-based method provides an alternative perspective on strategic strength and robustness within the tournament.
+
+Although this ranking approach is not directly implemented in the Axelrod-Python library, the tournament summary it produces contains all the necessary data to compute the number of wins for each strategy.
+
+\subsection{Schulze method}
+
+The Schulze method is a ranking algorithm originally developed by Markus Schulze~\cite{schulze2018schulze} for preferential voting systems, designed to determine the most representative or dominant option among multiple candidates. In the context of the Iterated Prisoner’s Dilemma, it can be adapted to rank strategies based on the strength of their pairwise victories. Rather than considering only the number of wins, the Schulze method analyzes the paths of dominance - indirect chains of victories that reveal which strategies consistently outperform others, even through intermediaries. 
+
+As a Condorcet completion method~\cite{schulze2011new}, it ensures that if a majority prefers one option over another (e.g., in most matches strategy A wins over B), that preference is respected whenever possible. The Schulze method resolves cyclic ties - situations where no clear majority winner exists - by considering the strength of indirect victories, resulting in a stable and transitive ranking that better reflects the underlying dominance structure among strategies.
+
+The code for implementing Schulze method uses summary provided by Axelrod-Python library to calculate pairwise winning matrix, which contains differences in scores between each pair of strategies. The algorithm for evaluating the best strategies is presented below:
+
+\begin{algorithm}[H]
+\caption{Schulze Method for Strategy Ranking}
+\begin{algorithmic}[1]
+\State \textbf{Step 1: Build Pairwise Comparison Matrix}
+\ForAll{pairs $(A,B)$}
+    \State Compute $d(A,B)$ — number of matches where $A$ scores higher than $B$
+\EndFor
+\State \textbf{Step 2: Initialize Path Strengths}
+\ForAll{pairs $(A,B)$}
+    \If{$A \neq B$ and $d(A,B) > d(B,A)$}
+        \State $p(A,B) \gets d(A,B)$
+    \Else
+        \State $p(A,B) \gets 0$
+    \EndIf
+\EndFor
+\State \textbf{Step 3: Compute Strongest Paths}
+\ForAll{strategies $i$}
+    \ForAll{distinct $(A,B)$ where $A \neq i$ and $B \neq i$}
+        \State $p(A,B) \gets \max(p(A,B), \min(p(A,i), p(i,B)))$
+    \EndFor
+\EndFor
+\State \textbf{Step 4: Determine Final Ranking}
+\State Strategy $A$ is ranked higher than $B$ if $p(A,B) > p(B,A)$
+\end{algorithmic}
+\end{algorithm}
+
+\section{Remixing original tournament }
+
+\subsection{Baseline: Classic tournament}
+
+To analyze the effectiveness of different tournament evaluation methods, we first conducted the recreation of first Axelrod’s tournament, which served as a baseline for subsequent comparisons. This classic format is based on the average score obtained by each strategy over multiple pairwise interactions. Each strategy plays against every other strategy, including itself, over a fixed number of rounds, and the final ranking is determined by the mean payoff per match. 
+
+By beginning with this traditional format, we establish a well-understood reference against which alternative evaluation criteria - such as win-based ranking and the Schulze method - can be directly compared.
+Axelrod’s first tournament included 14 strategies (plus a random “strategy”) and they are listed below\cite{doi:10.1177/002200278002400101}:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{ll}
+\hline
+\textbf{Name} & \textbf{Author} \\ \hline
+Tit For Tat & Anatol Rapoport \\
+Tideman and Chieruzzi & T. Nicolaus Tideman and Paula Chieruzzi \\
+Nydegger & Rudy Nydegger \\
+Grofman & Bernard Grofman \\
+Shubik & Martin Shubik \\
+Stein and Rapoport & Stein and Anatol Rapoport \\
+Grudger & James W. Friedman \\
+Davis & Morton Davis \\
+Graaskamp & Jim Graaskamp \\
+FirstByDowning & Leslie Downing \\
+Feld & Scott Feld \\
+Joss & Johann Joss \\
+Tullock & Gordon Tullock \\
+(Name withheld) & Unknown \\
+Random & Unknown \\ \hline
+\end{tabular}
+\caption{Strategies from Axelrod’s first tournament}
+\end{table}
+
+After running the tournament, the summary of results was obtained, part of which is listed below:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lllll}
+\hline
+Rank & Name                                        & Median\_score & Cooperation\_rating & Wins  \\ \hline
+0    & First by Stein   and Rapoport & 2.583571      & 0.602929            & 10               \\
+1    & First by Grofman          & 2.5275        & 0.848357            & 1                  \\
+2    & First by Shubik               & 2.508214      & 0.613429            & 3                  \\
+3    & Tit For Tat                                 & 2.4925        & 0.717357            & 0                   \\
+4    & First by Nydegger        & 2.461071      & 0.996               & 0                    \\
+5    & First by Tideman   and Chieruzzi    & 2.458929      & 0.597286            & 11                 \\
+6    & Grudger      & 2.401071      & 0.537929            & 5               \\
+7    & First by Davis    & 2.399643      & 0.547571            & 4                  \\
+8    & First by   Graaskamp     & 2.262857      & 0.565571            & 4                    \\
+9    & First by Downing             & 2.2375        & 0.362571            & 7                   \\
+10   & First by Feld  & 1.902143      & 0.290357            & 10                  \\
+11   & First by Tullock       & 1.833571      & 0.311357            & 8                  \\
+12   & First by Joss & 1.774286      & 0.2895              & 11                  \\
+13   & First by   Anonymous      & 1.641071      & 0.505               & 3            \\
+14   & Random: 0.5       & 1.620714      & 0.502714            & 3         \\  \hline
+\end{tabular}
+\caption{Summary of the first tournament}
+\end{table}
+
+It can be observed from the table above that the best-performing strategies in the classic tournament are not necessarily those that achieve the highest number of wins. For example, \textit{First by Joss} records 11 wins but is ranked only 12th overall. This observation is further supported by the Spearman’s rank correlation between the strategy’s position in the classic ranking and its number of wins, which in this setup equals approximately 0.2428. Such a low correlation indicates that the alternative evaluation formats proposed in this work are likely to produce substantially different rankings compared to the original tournament.
+
+
+\subsection{Adding new formats}
+
+After running the tournament, new methods of determining the winner had been applied using the summary obtained above. These methods were integrated into the post-processing stage of the analysis pipeline, allowing comparison of their outcomes with the traditional average-score ranking. Different rankings of strategies can be seen below:
+
+\begin{table}[H]
+\centering
+\begin{tabular}{llll}
+\hline
+Rank & Schulze\_Rank & Win\_Based\_Rank & Name                                      \\ \hline
+0    & 3             & 2                & First by Stein and Rapoport: 0.05: (D, D) \\
+1    & 12            & 12               & First by Grofman                          \\
+2    & 7             & 10               & First by Shubik                           \\
+3    & 13            & 13               & Tit For Tat                               \\
+4    & 14            & 14               & First by Nydegger                         \\
+5    & 2             & 1                & First by Tideman and Chieruzzi: (D, D)    \\
+6    & 4             & 6                & Grudger                                   \\
+7    & 5             & 7                & First by Davis: 10                        \\
+8    & 8             & 8                & First by Graaskamp: 0.05                  \\
+9    & 9             & 5                & First by Downing                          \\
+10   & 1             & 3                & First by Feld: 1.0, 0.5, 200              \\
+11   & 6             & 4                & First by Tullock                          \\
+12   & 0             & 0                & First by Joss: 0.9                        \\
+13   & 10            & 11               & First by Anonymous                        \\
+14   & 11            & 9                & Random: 0.5                              \\ \hline
+\end{tabular}
+\caption{All rankings}
+\end{table}
+
+The results can also be summarized visually using a comparative ranking graph (where a lower rank indicates better performance):
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{Images/compar_of_ranks.png}
+\caption{Difference in rankings}
+\label{fig:compare_rank_diff}
+\end{figure}
+
+The Spearman’s correlation between the classic ranking and the win-based method is relatively low (approximately –0.2357), as is the correlation between the classic ranking and the Schulze method (–0.1428).
+
+However, the correlation between the win-based and Schulze methods is notably high (0.9142), as illustrated in Figure~\ref{fig:schulze_win_line}.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{Images/schulze_win_line.png}
+\caption{Comparison of Schulze and win-based}
+\label{fig:schulze_win_line}
+\end{figure}
+
+This strong positive correlation can be attributed to the conceptual similarity between the two approaches - both evaluate strategies based on the outcomes of pairwise interactions. The primary difference is that the Schulze method additionally considers the strength of indirect victories, enabling it to resolve cyclic dominance relationships and produce a more stable overall ranking. Due to this methodological proximity, the subsequent analysis focuses primarily on the Schulze method, as it provides a richer and more general framework for assessing strategy dominance and robustness.
+
+As illustrated in Figure~\ref{fig:rank_diff}, five out of fifteen strategies experienced a decrease in their ranking positions when transitioning from the classic tournament format to the Schulze method. This indicates that while these strategies achieved high average scores overall, they were less dominant in direct pairwise comparisons. Conversely, eight strategies improved their positions under the Schulze ranking, suggesting that their relative strength in head-to-head matchups was underestimated by the traditional average-score approach.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{Images/rank_diff.png}
+\caption{Classic to Schulze difference}
+\label{fig:rank_diff}
+\end{figure}
+
+The most significant improvement in ranking is demonstrated by First by Joss, which moved twelve positions upward under the Schulze evaluation. First by Joss is a pretty aggressive strategy - it begins by cooperating but introduces random defections with a small probability, even when the opponent has been cooperative. This behavior allows it to exploit overly trusting strategies while still maintaining some level of cooperation against reciprocal ones. Its sharp rise in the Schulze ranking suggests that it performs particularly well in direct confrontations because of its aggressive nature. This outcome is especially noteworthy, as it contrasts with Axelrod’s original findings~\cite{doi:10.1177/002200278002400101}, which emphasized that successful strategies tend to be nice - avoiding unprovoked defections and fostering mutual cooperation. 
+
+Such results suggest that the new tournament environment created by the Schulze method is inherently more provocative, favoring strategies that adopt more aggressive or exploitative behavior. To evaluate this hypothesis, a set of correlations was computed, as presented in Table~\ref{tab:schulze_win_line}, in order to quantify how the distribution of ranks shifts with respect to strategy cooperation levels and defection tendencies.
+
+\begin{table}[]
+\centering
+\begin{tabular}{cccc}
+\hline
+\multicolumn{1}{l}{}              & Classic Rank & Win-Based Rank & Schulze Rank \\ \hline
+Median\_score & -1.0         & 0.235          & 0.142        \\
+Cooperation\_rating               & -0.835       & 0.635          & 0.553        \\
+Initial\_C\_rate                  & -0.548       & -0.132         & -0.334       \\
+CC\_rate                          & -0.903       & 0.389          & 0.321        \\
+DD\_rate                          & 0.714        & -0.671         & -0.632       \\
+CD\_rate                          & 0.374        & 0.560          & 0.725        \\
+DC\_rate                          & 0.575        & -0.253         & -0.142       \\
+CC\_to\_C\_rate                   & -0.846       & 0.336          & 0.223        \\
+DD\_to\_C\_rate                   & 0.165        & 0.617          & 0.726       \\ \hline
+\end{tabular}
+\caption{Correlations of rankings with strategies features}
+\label{tab:schulze_win_line}
+\end{table}
+
+It can be seen from the Table~\ref{tab:schulze_win_line} that the correlation with cooperation rating, CC rate, and CC-to-C rate is high and negative for the classic ranking, indicating that strategies inclined toward cooperation tend to achieve lower (i.e., better) ranks. In contrast, for both the win-based and Schulze methods, these features show medium positive correlations with rankings, while the DD rate is negatively correlated, implying that the best-performing strategies defect more frequently. It is also noteworthy that, for the Schulze and win-based methods, the DD-to-C rate - a measure of how often strategies cooperate following mutual defection - exhibits a moderately high positive correlation with ranking. This suggests that, under the new formats, the most successful strategies are less forgiving.
+
+The results of the correlation analysis therefore support the hypothesis that the new tournament formats favor more aggressive and less cooperative behaviors. The best-performing strategies tend to be less forgiving, more provocative, and less inclined toward sustained cooperation. This indicates that the new tournament environments differ fundamentally from the original Axelrod tournaments and may provide better tools for exploring behavioral phenomena that classical tournament structures cannot fully capture.
+
+\section{Bigger tournament}
+
+To validate the conclusions drawn in the previous section, a larger tournament was conducted using an expanded set of strategies. Increasing the diversity of strategic behaviors allows for a more precise and comprehensive evaluation of the tournament formats. The inclusion of a wider range of strategies helps to reduce bias caused by specific interactions in smaller groups and provides a more robust basis for comparing the effectiveness and behavioral implications of the classic, win-based, and Schulze ranking methods.
+
+\subsection{Choosing the strategies}
+
+To conduct the larger tournament, the first step was to select the strategies to be included. The Axelrod-Python library provides convenient classification tools that allow filtering strategies based on their behavioral and computational properties. This ensures that only valid and compatible strategies are used in the experiment. 
+
+In this work, several restrictions were applied. Only strategies that do not manipulate the internal state of opponents, do not inspect or alter source code, and do not require excessive computational time were included. These criteria guarantee that all selected strategies operate fairly and can complete their executions within reasonable time limits. Applying these filters yields a large and diverse set of valid strategies that consists of 224 strategies. The other parameters for running the tournament do not change and can be found in Table~\ref{tab:params}.
+
+\subsection{Running the tournament}
+
+After running the tournament, the collected data was analyzed using all three ranking methods discussed earlier - Classic (average-score based), win-based, and Schulze. In the larger-scale tournament, the correlations between these ranking methods changed notably. For instance, there is now a moderate negative correlation (-0.5462) between the Classic and win-based approaches, suggesting that strategies achieving higher average scores tend to lose more frequently in direct pairwise encounters. The correlation between the Classic and Schulze rankings is close to zero (0.0638), indicating that average score has almost no influence on performance within the Schulze method. 
+
+The most striking difference, however, appears in the correlation between the Schulze and win-based rankings: while previously these two methods were very closely aligned, the current correlation has decreased to a moderate level (0.5363). This shift implies that as the number and diversity of strategies increase, the two methods begin to capture distinct aspects of strategic dominance. Consequently, both new formats should be included in further analysis, as they yield meaningfully different insights into strategic performance.
+
+In the Table~\ref{tab:top5schulze} we can see the top five performers by Schulze ranking and their main features, and Figure~\ref{fig:top10schulze} shows the most changes in ranks by strategies.
+
+\begin{table}[]
+\centering
+\begin{tabular}{llllll}
+\hline
+Schulze\_Rank & Classic\_Rank & Win\_Based\_Rank & Name                   & Median\_score  \\ \hline
+0             & 213           & 0                & Aggravater             & 1.868946                  \\
+1             & 223           & 1                & Defector               & 1.796143                 \\
+2             & 178           & 25               & SolutionB5             & 2.020022                 \\
+3             & 144           & 44               & Suspicious Tit For Tat & 2.208274                  \\
+4             & 208           & 26               & UsuallyDefects         & 1.877556                 \\ \hline
+\end{tabular}
+\caption{Schulze top rankings}
+\label{tab:top5schulze}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{Images/top10schulze.png}
+\caption{Classic to Schulze most change in rank}
+\label{fig:top10schulze}
+\end{figure}
+
+The same characteristics and graph are shown for win-based method by Table~\ref{tab:top5win} and Figure~\ref{fig:top10win}.
+
+\begin{table}[]
+\centering
+\begin{tabular}{llllll}
+\hline
+Win\_Based\_Rank & Rank & Schulze\_Rank & Name                      & Median\_score  \\ \hline
+0                & 213  & 0             & Aggravater                & 1.868946                \\
+1                & 223  & 1             & Defector                  & 1.796143                  \\
+2                & 197  & 5             & CollectiveStrategy        & 1.897399                \\
+3                & 216  & 52            & ZD-Mischief: 0.1, 0.0, 1  & 1.864305                \\
+4                & 214  & 6             & ZD-Extortion: 0.2, 0.1, 1 & 1.865516      \\ \hline           
+\end{tabular}
+\caption{Win-Based top rankings}
+\label{tab:top5win}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{Images/top10win.png}
+\caption{Classic to Win-Based most change in rank}
+\label{fig:top10win}
+\end{figure}
+
+Overall, when transitioning from the Classic to the Schulze ranking, 47.77\% of strategies improved their positions, while 51.79\% experienced a decline. In contrast, under the win-based method, exactly 50\% of strategies improved their rank. It is also worth to note that for Schulze method only approximately 8\% of strategies improved their position by more than half of their rank, and 10\% declined by more than half of their rank. In contrast, for win-based method these values are 22\% and 24\% respectively. Figure~\ref{fig:disrtib_rank_change} shows the distribution of losses/gains in ranks for both methods.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.8\textwidth]{Images/disrtib_rank_change.png}
+\caption{Distribution of rank changes}
+\label{fig:disrtib_rank_change}
+\end{figure}
+
+It is also notable that the top two positions remain identical in both the win-based and Schulze rankings - Aggravater and Defector. Both strategies also appear within the top 10 most improved ranks across both comparisons. This consistency can be attributed to their highly defect-oriented behavior, which allows them to dominate pairwise matchups and remain largely unbeatable in head-to-head encounters.	
+
+The correlation analysis has been performed on both Schulze and win-based methods, the table containing the summary of this analysis is shown in Table~\ref{tab:corr_big}.
+
+\begin{table}[]
+\centering
+\begin{tabular}{llll}
+\hline
+                    & Classic Rank & Win-Based Rank & Schulze Rank \\ \hline
+Median\_score       & -1           & 0.546          & -0.063       \\
+Cooperation\_rating & -0.454       & 0.837          & 0.629        \\
+Initial\_C\_rate    & -0.495       & 0.317          & 0.005        \\
+CC\_rate            & -0.727       & 0.843          & 0.381        \\
+DD\_rate            & 0.387        & -0.765         & -0.650       \\
+CD\_rate            & 0.510        & 0.078          & 0.607        \\
+DC\_rate            & 0.402        & -0.716         & -0.427       \\
+CC\_to\_C\_rate     & -0.505       & 0.494          & 0.075        \\
+DD\_to\_C\_rate     & 0.199        & 0.076          & 0.375      \\ \hline 
+\end{tabular}
+\caption{Correlation table}
+\label{tab:corr_big}
+\end{table}
+
+From Table~\ref{tab:corr_big} we can see that correlation with cooperation rating for classic ranking method dropped significantly in the new tournament, compared with the recreation of first Axelrod’s tournament, showing that with bigger pool of strategies cooperation doesn’t affect average score as significantly. For Schulze and win-based rankings that correlation dropped slightly, but still remains moderately high, confirming the conclusions from last section. Overall, the correlation table doesn’t differ much from the table in section 4, which suggest that even on the larger scale, the environment created by two new methods of ranking still remains hostile and unforgiving and favors “meaner” strategies. 
+
+To further confirm these conclusions, it has been decided to fit the multivariate linear regression model for each of the ranking methods. For regression coefficients to be more easily understood and explained, we will use the normalized rank instead of simple rank in our model. The normalized rank takes on values in range from 0 to 1 and is calculated by following formula\cite{10.1371/journal.pcbi.1012644}: 
+
+\[R_n = R/N,\]
+where $R$ – the absolute rank of the strategy, and $N$ is the total number of strategies in the tournament. As can be seen from formula above, $R_n=0$ corresponds to the best performing strategy, and $R_n=1$ corresponds to worst-performing one.
+
+After fitting the linear regression model to the data obtained from the tournament, and omitting some features to avoid multicollinearity, we obtain the model shown in Table~\ref{tab:regr_big}.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lcccccc}
+\toprule
+ & \multicolumn{2}{c}{\textbf{Classic ranking}} & \multicolumn{2}{c}{\textbf{Schulze ranking} } & \multicolumn{2}{c}{\textbf{Win-Based ranking} } \\
+\cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7}
+ & \textbf{Coefficient} & \textbf{p-value} & \textbf{Coefficient} & \textbf{p-value} & \textbf{Coefficient} & \textbf{p-value} \\
+ & \multicolumn{1}{c}{\textit{$R^2_{adj}=0.952$}} & & \multicolumn{1}{c}{\textit{$R^2_{adj}=0.493$}} & & \multicolumn{1}{c}{\textit{$R^2_{adj}=0.707$}} & \\
+\midrule
+constant & 2.7543 & 0.000 		& 1.8976 & 0.000 		& 0.3499 & 0.017 \\
+Median score & -1.0241 & 0.000 	& -0.7074 & 0.000 		& -0.1406 & 0.048 \\
+Initial C rate & 0.0079 & 0.555 		& 0.0198 & 0.651 		& -0.0303 & 0.363 \\
+CC rate & 0.3462 & 0.000 		& 1.0052 & 0.000 		& 1.4131 & 0.000 \\
+DD rate & 0.1422 & 0.033 		& -0.5800 & 0.008 		& -0.0145 & 0.930 \\
+CC\_to\_C\_rate & -0.0323 & 0.259 	& -0.1644 & 0.079		& -0.3072 & 0.000 \\
+DD\_to\_C\_rate & 0.0003 & 0.988 	& 0.1095 & 0.099 		& 0.1022 & 0.043 \\
+\bottomrule
+\end{tabular}
+\caption{Regression coefficients across different tournament environments}
+\label{tab:regr_big}
+\end{table}
+
+The regression model we got is not surprising and largely confirms the conclusions from above – for instance it confirms the negative effect of high CC rate on strategy performance in both Schulze and win-based tournaments, implying once again that new formats tend to favour aggressive behavior. The relatively high adjusted $R^2$
+ values, especially for the Classic and win-based models, indicate that the selected variables explain a significant proportion of variation in normalized ranks. However, the lower $R^2$ for the Schulze ranking suggests that the Schulze method may have more complex, non-linear dominance relationships that cannot be fully described by linear dependence on basic behavioral features. 
+
+\subsection{Section summary}
+
+In this section, a larger tournament was conducted using 224 strategies from the Axelrod-Python library and three different ranking methods - Classic (placement based on average score), Win-Based (number of wins in pairwise matchups), and Schulze (winners determined by beatpaths). This experiment was designed to validate the conclusions drawn from the smaller-scale tournament involving only 15 strategies.
+
+Overall, the main findings from the smaller tournament were confirmed, providing a clearer understanding of how the new formats change the tournament environment. The most significant results observed for the Schulze ranking are summarized below:
+\begin{enumerate}
+  \item  Winning strategies are no longer ``nice'' - they exhibit more suspicious and provocative behavior;
+  \item Average score is no longer a significant factor influencing strategy performance;
+  \item Top-performing strategies tend to be highly unforgiving and less cooperative.
+\end{enumerate}
+
+These findings reinforce the hypothesis that the new ranking formats fundamentally reshape the competitive dynamics of the Iterated Prisoner’s Dilemma. In the next section, the obtained results are discussed in the broader context of strategy evolution and cooperation theory, drawing final conclusions from the conducted experiments.
+\newpage
+
+
+\section{Conclusion}
+
+The study presented in this work explored the effects of alternative tournament ranking methodologies in the Iterated Prisoner’s Dilemma (IPD), with the goal of providing a more comprehensive understanding of how different evaluation frameworks influence the identification of dominant strategies. Building upon the foundation of Robert Axelrod’s seminal tournaments, this research sought to extend the classic setup by introducing and comparing three ranking systems: the traditional average-score (Classic) method, a win-based method emphasizing direct pairwise success, and the Schulze method, adapted from preferential voting theory to resolve cyclic dominance relationships among strategies.
+
+The first stage of the analysis involved replicating the conditions of Axelrod’s original tournament, consisting of 15 well-known strategies. Comparison of results across the three formats revealed substantial differences in ranking outcomes. Notably, the correlation between the Classic and alternative methods was weak, indicating that strategies performing well on the basis of average score did not necessarily excel in direct confrontations. The Schulze and win-based rankings, in particular, tended to favor less cooperative, more provocative strategies - in contrast to the cooperative and forgiving nature of the top performers in Axelrod’s experiments. This shift in dominance patterns demonstrated that the evaluation metric itself can fundamentally alter which behaviors are rewarded within the competitive environment.
+
+The most significant transformation was observed in the performance of the \textit{First by Joss} strategy, which rose dramatically in the Schulze ranking compared to its placement under the Classic approach. Its aggressive behavior - characterized by spontaneous defections even against cooperative opponents - proved advantageous in head-to-head contests. This finding challenged the long-standing notion that “nice” strategies always prevail, suggesting that the Schulze-style environment rewards caution and opportunism over unconditional trust. These results laid the foundation for the hypothesis that the new tournament structures create a more antagonistic and less cooperative ecosystem.
+
+To validate these insights, the study extended the experiment to a much larger tournament involving 224 strategies. The expanded scope introduced greater behavioral diversity, allowing for a more statistically robust examination of patterns. Correlation analysis across ranking methods again confirmed the earlier observations: the Classic ranking maintained a weak or even negative correlation with the new methods, while the Schulze and win-based rankings showed only moderate agreement. This divergence emphasized that the alternative evaluation systems capture distinct dimensions of performance - efficiency in the Classic sense versus dominance and resilience in direct interactions.
+
+Regression analysis further illuminated the structural differences among the ranking methods. In the Classic tournament, performance was strongly associated with high median score and consistent cooperation, echoing the cooperative ethos of Axelrod’s findings. However, for both the win-based and Schulze rankings, the influence of cooperative indicators diminished significantly. Instead, metrics reflecting unprovoked defections and low forgiveness rates gained importance, confirming that in these new competitive frameworks, success favors strategies that are assertive, less forgiving, and strategically cautious.
+
+The broader implications of these findings extend beyond the numerical rankings themselves. They illustrate how seemingly minor methodological changes - such as redefining what constitutes a “win” - can reshape the entire strategic landscape of the Iterated Prisoner’s Dilemma. In essence, the payoff structure of social interaction models is not solely determined by the game’s matrix, but also by the criteria used to evaluate success. By rewarding dominance over cooperation, the new ranking systems simulate environments where mistrust, competition, and provocation become stable strategies - conditions that may better mirror certain real-world social and economic systems.
+
+Future work could further investigate how these ranking methods interact with strategy populations in dynamic or noisy environments. Incorporating incomplete information into the model would enable simulation of more realistic social ecosystems, bridging the gap between theoretical prediction and empirical behavior. Additionally, hybrid ranking mechanisms that balance dominance and cooperation metrics could provide more nuanced perspectives on the evolution of trust in competitive societies.
+
+In conclusion, the research demonstrates that the structure of the tournament - not only the strategies within it - fundamentally shapes the dynamics of competition and cooperation. By extending the classical framework of the Iterated Prisoner’s Dilemma through win-based and Schulze methods, this project reveals how alternative evaluation paradigms can lead to qualitatively different equilibria. The results underscore the importance of critically re-examining traditional metrics of success in strategic modeling and highlight the potential of multi-format tournaments as a tool for exploring complex adaptive behaviors in social and computational systems.
+\newpage
+
+\bibliographystyle{plain}
+\bibliography{bibliography.bib}
+\end{document}
