@@ -255,7 +255,7 @@ As illustrated in Figure~\ref{fig:rank_diff}, five out of fifteen strategies exp
 \label{fig:rank_diff}
 \end{figure}
 
-The most significant improvement in ranking is demonstrated by First by Joss, which moved twelve positions upward under the Schulze evaluation. First by Joss is a pretty aggressive strategy - it begins by cooperating but introduces random defections with a small probability, even when the opponent has been cooperative. This behavior allows it to exploit overly trusting strategies while still maintaining some level of cooperation against reciprocal ones. Its sharp rise in the Schulze ranking suggests that it performs particularly well in direct confrontations because of its aggressive nature. This outcome is especially noteworthy, as it contrasts with Axelrod’s original findings~\cite{doi:10.1177/002200278002400101}, which emphasized that successful strategies tend to be nice - avoiding unprovoked defections and fostering mutual cooperation. 
+The most significant improvement in ranking is demonstrated by \textit{First by Joss}, which moved twelve positions upward under the Schulze evaluation. \textit{First by Joss} is a pretty aggressive strategy - it begins by cooperating but introduces random defections with a small probability, even when the opponent has been cooperative. This behavior allows it to exploit overly trusting strategies while still maintaining some level of cooperation against reciprocal ones. Its sharp rise in the Schulze ranking suggests that it performs particularly well in direct confrontations because of its aggressive nature. This outcome is especially noteworthy, as it contrasts with Axelrod’s original findings~\cite{doi:10.1177/002200278002400101}, which emphasized that successful strategies tend to be nice - avoiding unprovoked defections and fostering mutual cooperation. 
 
 Such results suggest that the new tournament environment created by the Schulze method is inherently more provocative, favoring strategies that adopt more aggressive or exploitative behavior. To evaluate this hypothesis, a set of correlations was computed, as presented in Table~\ref{tab:schulze_win_line}, in order to quantify how the distribution of ranks shifts with respect to strategy cooperation levels and defection tendencies.
 
@@ -394,29 +394,28 @@ After fitting the linear regression model to the data obtained from the tourname
  & \multicolumn{2}{c}{\textbf{Classic ranking}} & \multicolumn{2}{c}{\textbf{Schulze ranking} } & \multicolumn{2}{c}{\textbf{Win-Based ranking} } \\
 \cmidrule(lr){2-3} \cmidrule(lr){4-5} \cmidrule(lr){6-7}
  & \textbf{Coefficient} & \textbf{p-value} & \textbf{Coefficient} & \textbf{p-value} & \textbf{Coefficient} & \textbf{p-value} \\
- & \multicolumn{1}{c}{\textit{$R^2_{adj}=0.952$}} & & \multicolumn{1}{c}{\textit{$R^2_{adj}=0.493$}} & & \multicolumn{1}{c}{\textit{$R^2_{adj}=0.707$}} & \\
+ & \multicolumn{1}{c}{\textit{$R^2_{adj}=0.671$}} & & \multicolumn{1}{c}{\textit{$R^2_{adj}=0.361$}} & & \multicolumn{1}{c}{\textit{$R^2_{adj}=0.703$}} & \\
 \midrule
-constant & 2.7543 & 0.000 		& 1.8976 & 0.000 		& 0.3499 & 0.017 \\
-Median score & -1.0241 & 0.000 	& -0.7074 & 0.000 		& -0.1406 & 0.048 \\
-Initial C rate & 0.0079 & 0.555 		& 0.0198 & 0.651 		& -0.0303 & 0.363 \\
-CC rate & 0.3462 & 0.000 		& 1.0052 & 0.000 		& 1.4131 & 0.000 \\
-DD rate & 0.1422 & 0.033 		& -0.5800 & 0.008 		& -0.0145 & 0.930 \\
-CC\_to\_C\_rate & -0.0323 & 0.259 	& -0.1644 & 0.079		& -0.3072 & 0.000 \\
-DD\_to\_C\_rate & 0.0003 & 0.988 	& 0.1095 & 0.099 		& 0.1022 & 0.043 \\
+constant & 1.2585 & 0.000 		& 0.8643 & 0.000 		& 0.1445 &0.162 \\
+Initial C rate & -0.1003& 0.004		&-0.0549 & 0.251 		& -0.0451 & 0.167 \\
+CC rate & -1.2553 & 0.000 		& -0.1011 & 0.634		& 1.1931 & 0.000 \\
+DD rate & -0.4578 & 0.007		& -0.9944 & 0.000		& -0.0969 & 0.547 \\
+CC\_to\_C\_rate & 0.1127 & 0.130 	& -0.0643 & 0.535		& -0.2873 & 0.000 \\
+DD\_to\_C\_rate & 0.0308 & 0.563 	& 0.1306 & 0.079		& 0.1064 & 0.036 \\
 \bottomrule
 \end{tabular}
 \caption{Regression coefficients across different tournament environments}
 \label{tab:regr_big}
 \end{table}
 
-The regression model we got is not surprising and largely confirms the conclusions from above – for instance it confirms the negative effect of high CC rate on strategy performance in both Schulze and win-based tournaments, implying once again that new formats tend to favour aggressive behavior. The relatively high adjusted $R^2$
+The regression model we got is not surprising and largely confirms the conclusions from above – for instance it confirms the negative effect of high CC rate on strategy performance in win-based tournaments, as well as positive effect of high DD rate on rankings in Schulze tournament. This implies once again that new formats tend to favour aggressive behavior. The relatively high adjusted $R^2$
  values, especially for the Classic and win-based models, indicate that the selected variables explain a significant proportion of variation in normalized ranks. However, the lower $R^2$ for the Schulze ranking suggests that the Schulze method may have more complex, non-linear dominance relationships that cannot be fully described by linear dependence on basic behavioral features. 
 
 \subsection{Section summary}
 
 In this section, a larger tournament was conducted using 224 strategies from the Axelrod-Python library and three different ranking methods - Classic (placement based on average score), win-based (number of wins in pairwise matchups), and Schulze (winners determined by beatpaths). This experiment was designed to validate the conclusions drawn from the smaller-scale tournament involving only 15 strategies.
 
-Overall, the main observations identified in the smaller 15-strategy tournament -- such as the reduced importance of average score and the rise of more unforgiving strategies, were confirmed on a larger scale, clarifying how the alternative ranking formats reshape the competitive landscape. In particular, the Schulze ranking highlights several notable patterns:
+Overall, the main observations identified in the smaller tournament -- such as the reduced importance of average score and the rise of more unforgiving strategies, were confirmed on a larger scale, clarifying how the alternative ranking formats reshape the competitive landscape. In particular, the Schulze ranking highlights several notable patterns:
 \begin{enumerate}
   \item  Winning strategies are no longer ``nice'' - they exhibit more suspicious and provocative behavior;
   \item Average score is no longer a significant factor influencing strategy performance;
